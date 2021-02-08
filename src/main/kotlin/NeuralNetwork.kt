@@ -115,17 +115,17 @@ class NeuralNetwork(
 
                     receivingLayers.asReversed().forEach{ it.train() }
 
-                    val cost = outputLayer.nodes.sumByDouble { it.cost() }
-                    costs.add(cost)
+                    if(tester != null) costs.add(outputLayer.nodes.sumByDouble { it.cost() })
                 }
 
                 if(tester != null) {
-                    println("${costs.average()}, ${tester()}")
+                    if(batchNumber % 25 == 0) {
+                        println("${costs.average()}, ${tester()}")
+                        costs.clear()
+                    }
                 } else {
                     println("Training... iteration ${i+1}/$iterations batch ${batchNumber+1}/${miniBatches.size} (${100.0 * (i * miniBatches.size + batchNumber) / (iterations * miniBatches.size)} %)")
                 }
-
-                costs.clear()
 
                 receivingLayers.forEach { it.nudgeParameters(stepSize) }
             }

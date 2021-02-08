@@ -67,21 +67,28 @@ class HiddenNode(
 ) : TransmitterNode, ReceiverNode {
 
     override fun train() {
+        val a = dActivationFunction(z())
+
         derivativeOfCostByBiasOnExampleK.add(
-            derivativesOfCostByActivation.average()
+            derivativesOfCostByActivation.averageBy { dcda ->
+                a * dcda
+            }
         )
 
         inputs.forEach { edge ->
+            val b = edge.inputActivation * a
+            val c = edge.weight * a
+
             edge.derivativeOfCostByWeightOnExampleK.add(
                 derivativesOfCostByActivation.averageBy { dCost ->
-                    edge.inputActivation * dActivationFunction(z()) * dCost
+                    b * dCost
                 }
             )
 
             if(edge.inputNode is HiddenNode){
                 edge.inputNode.derivativesOfCostByActivation.add(
                     derivativesOfCostByActivation.averageBy { dCost ->
-                        edge.weight * dActivationFunction(z()) * dCost
+                        c * dCost
                     }
                 )
             }
@@ -103,18 +110,18 @@ open class OutputNode(
     fun dCost() = 2 * (activation - desiredActivation)
 
     override fun train() {
-        derivativeOfCostByBiasOnExampleK.add(
-            dActivationFunction(z()) * dCost()
-        )
+        val q = dActivationFunction(z()) * dCost()
+
+        derivativeOfCostByBiasOnExampleK.add(q)
 
         inputs.forEach { edge ->
             edge.derivativeOfCostByWeightOnExampleK.add(
-                edge.inputActivation * dActivationFunction(z()) * dCost()
+                edge.inputActivation * q
             )
 
             if(edge.inputNode is HiddenNode){
                 edge.inputNode.derivativesOfCostByActivation.add(
-                    edge.weight * dActivationFunction(z()) * dCost()
+                    edge.weight * q
                 )
             }
         }

@@ -3,12 +3,12 @@ import kotlin.random.Random
 
 val random = Random(1234L)
 
-val hiddenLayerNodes = listOf(20, 14)
-const val iterations = 10
-const val stepSize = 0.01
+val hiddenLayerNodes = listOf<Int>()
+const val iterations = 100
+const val stepSize = 0.015
 const val trainingImages = 60000 // max 60000
-const val miniBatchSize = 60
-val activationFunction: ActivationFunction = ActivationFunction.RELU
+const val miniBatchSize = 200
+val activationFunction: ActivationFunction = ActivationFunction.SIGMOID
 
 val trainingData = readData(
     labelsFile = File("train-labels.idx1-ubyte"),
