@@ -12,7 +12,7 @@ with a 28x28 px resolution.
 
 ## Requirements
 - Kotlin
-- Download the four data files from http://yann.lecun.com/exdb/mnist/ an extract to project root.
+- Download the four data files from http://yann.lecun.com/exdb/mnist/ and extract to project root.
 
 ## Edit parameters
 You may change e.g. network topology and step size by editing parameters.kt
