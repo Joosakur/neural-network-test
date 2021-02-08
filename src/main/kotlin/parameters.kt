@@ -8,6 +8,7 @@ import model.LayerParameters
 const val stepSize: Double = 0.01
 const val batchSize: Int = 200
 val hiddenLayers = listOf<LayerParameters>(
+    LayerParameters(numberOfNodes = 32, activationFunction = ActivationFunction.RELU)
 )
 val outputLayerActivationFunction: ActivationFunction = ActivationFunction.SIGMOID
 

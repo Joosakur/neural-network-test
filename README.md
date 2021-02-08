@@ -7,10 +7,11 @@ This is NOT an attempt to create a well performing and effective solution.
 
 ## Training and test data
 
-By default, the data used for training and testing is a set of images of handwritten digits. 
+By default, the data used for training and testing is a set of grayscale images of handwritten digits 
+with a 28x28 px resolution. 
 
 ## Requirements
-- kotlin
+- Kotlin
 - Download the four data files from http://yann.lecun.com/exdb/mnist/ an extract to project root.
 
 ## Edit parameters
@@ -21,6 +22,10 @@ Run main.kt
 
 ## Example results
 
-Network without hidden layers works surprisingly well.
-![Result 1](./results/example-results-1.PNG)
+Network without hidden layers works surprisingly well and learns very quickly.
 
+![Result 1](results/example-result-1.PNG)
+
+Network with one hidden layer of 32 nodes takes a much longer time to train, but might ultimately give better results.
+
+![Result 2](./results/example-result-2.PNG)

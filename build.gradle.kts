@@ -4,7 +4,7 @@ plugins {
     kotlin("jvm") version "1.4.30"
 }
 
-group = "me.joosa"
+group = "net.joosa"
 version = "1.0-SNAPSHOT"
 
 repositories {
