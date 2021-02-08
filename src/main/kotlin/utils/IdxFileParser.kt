@@ -1,8 +1,10 @@
+package utils
+
+import model.Example
 import java.io.File
-import java.lang.Error
 import java.nio.ByteBuffer
 
-data class Examples (
+data class Examples(
     val examples: List<Example>,
     val pixelsPerImage: Int
 )
@@ -11,7 +13,7 @@ fun readData(imagesFile: File, labelsFile: File): Examples {
     val (pixelsPerImage, images) = readImages(imagesFile)
     val labels = readLabels(labelsFile)
 
-    if(images.size != labels.size){
+    if (images.size != labels.size) {
         throw Error("${labels.size} labels does not match ${images.size} images")
     }
 
@@ -25,12 +27,12 @@ fun readLabels(file: File): List<Int> {
     val bytes = file.readBytes()
 
     val magicNumber = read32BitInt(bytes, 0)
-    if(magicNumber != 2049) throw Error("Invalid file type")
+    if (magicNumber != 2049) throw Error("Invalid file type")
 
     val numberOfItems = read32BitInt(bytes, 4)
 
     val labels = bytes.slice(8 until bytes.size).map { it.toInt() }
-    if(labels.size != numberOfItems) {
+    if (labels.size != numberOfItems) {
         throw Error("Expected $numberOfItems labels, found ${labels.size}")
     }
 
@@ -41,7 +43,7 @@ fun readImages(file: File): Pair<Int, List<List<Double>>> {
     val bytes = file.readBytes()
 
     val magicNumber = read32BitInt(bytes, 0)
-    if(magicNumber != 2051) throw Error("Invalid file type")
+    if (magicNumber != 2051) throw Error("Invalid file type")
 
     val numberOfImages = read32BitInt(bytes, 4)
 
@@ -49,7 +51,7 @@ fun readImages(file: File): Pair<Int, List<List<Double>>> {
     val xResolution = read32BitInt(bytes, 12)
     val pixelsPerImage = xResolution * yResolution
 
-    if ((bytes.size - 16) != numberOfImages * pixelsPerImage){
+    if ((bytes.size - 16) != numberOfImages * pixelsPerImage) {
         throw Error("Number of pixels does not match")
     }
 

@@ -1,3 +1,8 @@
+package model
+
+/**
+ * Edge is a connection between two Nodes. It has an associated weight which portrays the connection strength.
+ */
 data class Edge(
     val inputNode: TransmitterNode,
     val outputNode: ReceiverNode,

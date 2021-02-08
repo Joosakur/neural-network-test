@@ -1,37 +1,27 @@
+package model
+
+import utils.dRelu
+import utils.dSigmoid
+import utils.relu
+import utils.sigmoid
 import kotlin.random.Random
 
+/**
+ * This class represents the whole network.
+ */
 class NeuralNetwork(
     val inputLayer: InputLayer,
     val hiddenLayers: List<HiddenLayer>,
     val outputLayer: OutputLayer,
     val random: Random
-
-){
+) {
     companion object {
         fun build(
             inputLength: Int,
-            hiddenLayerLengths: List<Int>,
-            outputLength: Int,
-            activationFunction: ActivationFunction,
+            hiddenLayers: List<LayerParameters>,
+            outputLayer: LayerParameters,
             random: Random
-        ): NeuralNetwork{
-            val f = when(activationFunction){
-                ActivationFunction.SIGMOID -> {
-                    x: Double -> sigmoid(x)
-                }
-                ActivationFunction.RELU -> {
-                    x: Double -> relu(x)
-                }
-            }
-            val df = when(activationFunction){
-                ActivationFunction.SIGMOID -> {
-                        x: Double -> dSigmoid(x)
-                }
-                ActivationFunction.RELU -> {
-                        x: Double -> dRelu(x)
-                }
-            }
-
+        ): NeuralNetwork {
             return NeuralNetwork(
                 inputLayer = InputLayer(
                     nodes = (0 until inputLength).map {
@@ -41,28 +31,28 @@ class NeuralNetwork(
                         )
                     }
                 ),
-                hiddenLayers = hiddenLayerLengths.map { layerLength ->
+                hiddenLayers = hiddenLayers.map { layer ->
                     HiddenLayer(
-                        nodes = (0 until layerLength).map {
+                        nodes = (0 until layer.numberOfNodes).map {
                             HiddenNode(
                                 activation = 0.0,
                                 outputs = mutableListOf(),
                                 inputs = mutableListOf(),
                                 bias = random.nextDouble() - 0.5,
-                                activationFunction = f,
-                                dActivationFunction = df
+                                activationFunction = layer.activationFunction.get(),
+                                dActivationFunction = layer.activationFunction.derivative()
                             )
                         }
                     )
                 },
                 outputLayer = OutputLayer(
-                    nodes = (0 until outputLength).map {
+                    nodes = (0 until outputLayer.numberOfNodes).map {
                         OutputNode(
                             activation = 0.0,
                             inputs = mutableListOf(),
                             bias = random.nextDouble() - 0.5,
-                            activationFunction = f,
-                            dActivationFunction = df
+                            activationFunction = outputLayer.activationFunction.get(),
+                            dActivationFunction = outputLayer.activationFunction.derivative()
                         )
                     }
                 ),
@@ -72,7 +62,7 @@ class NeuralNetwork(
     }
 
     fun fullyConnect() {
-        if(hiddenLayers.isEmpty()){
+        if (hiddenLayers.isEmpty()) {
             inputLayer.fullyConnectTo(outputLayer, random)
         } else {
             inputLayer.fullyConnectTo(hiddenLayers.first(), random)
@@ -87,18 +77,27 @@ class NeuralNetwork(
         return getBestGuess()
     }
 
-    fun train(batch: List<Example>, iterations: Int, miniBatchSize: Int, stepSize: Double, tester: (() -> Double)? = null){
-        val miniBatches = (0 until batch.size / miniBatchSize).map { i ->
-            val offset = i * miniBatchSize
-            batch.subList(offset, offset + miniBatchSize)
+    fun train(
+        trainingData: List<Example>,
+        iterations: Int,
+        batchSize: Int,
+        stepSize: Double,
+        evaluateTestData: () -> Double,
+        evaluateTestDataAfterBatches: Int = 25
+    ) {
+        println("Samples, Average cost over ${evaluateTestDataAfterBatches * batchSize} samples, Success rate over test data")
+
+        val batches = (0 until trainingData.size / batchSize).map { i ->
+            val offset = i * batchSize
+            trainingData.subList(offset, offset + batchSize)
         }
 
         for (i in 0 until iterations) {
-            miniBatches.forEachIndexed() { batchNumber, miniBatch ->
+            batches.forEachIndexed() { batchNumber, batch ->
 
                 allLayers.forEach { it.clear() }
 
-                miniBatch.forEach { example ->
+                batch.forEach { example ->
                     inputLayer.nodes.forEachIndexed { i, node ->
                         node.activation = example.data[i]
                     }
@@ -108,23 +107,19 @@ class NeuralNetwork(
                     }
 
                     outputLayer.nodes.forEachIndexed { i, node ->
-                        node.desiredActivation = if(example.label == i) 1.0 else 0.0
+                        node.desiredActivation = if (example.label == i) 1.0 else 0.0
                     }
 
                     propagateForward()
 
-                    receivingLayers.asReversed().forEach{ it.train() }
+                    receivingLayers.asReversed().forEach { it.train() }
 
-                    if(tester != null) costs.add(outputLayer.nodes.sumByDouble { it.cost() })
+                    costs.add(outputLayer.nodes.sumByDouble { it.cost() })
                 }
 
-                if(tester != null) {
-                    if(batchNumber % 25 == 0) {
-                        println("${costs.average()}, ${tester()}")
-                        costs.clear()
-                    }
-                } else {
-                    println("Training... iteration ${i+1}/$iterations batch ${batchNumber+1}/${miniBatches.size} (${100.0 * (i * miniBatches.size + batchNumber) / (iterations * miniBatches.size)} %)")
+                if ((batchNumber + 1) % evaluateTestDataAfterBatches == 0) {
+                    println("${i * trainingData.size + (batchNumber + 1) * batchSize}, ${costs.average()}, ${evaluateTestData()}")
+                    costs.clear()
                 }
 
                 receivingLayers.forEach { it.nudgeParameters(stepSize) }
@@ -144,8 +139,8 @@ class NeuralNetwork(
     private val receivingLayers: List<ReceivingLayer<*>>
         get() = listOf(*hiddenLayers.toTypedArray(), outputLayer)
 
-    private fun setInput(input: List<Double>){
-        if(input.size != inputLayer.size){
+    private fun setInput(input: List<Double>) {
+        if (input.size != inputLayer.size) {
             throw IllegalArgumentException("Input array must have size ${inputLayer.size}")
         }
 
@@ -153,7 +148,7 @@ class NeuralNetwork(
     }
 
     private fun propagateForward() {
-        listOf(*hiddenLayers.toTypedArray(), outputLayer).forEach{ layer -> layer.eval() }
+        listOf(*hiddenLayers.toTypedArray(), outputLayer).forEach { layer -> layer.eval() }
     }
 
     private fun getBestGuess(): Int {
@@ -170,7 +165,27 @@ data class Example(
     val label: Int
 )
 
-enum class ActivationFunction{
+data class LayerParameters(
+    val numberOfNodes: Int,
+    val activationFunction: ActivationFunction
+)
+
+enum class ActivationFunction {
     SIGMOID,
-    RELU
+    RELU;
+
+    fun get(): (Double) -> Double {
+        return when (this) {
+            SIGMOID -> { x: Double -> sigmoid(x) }
+            RELU -> { x: Double -> relu(x) }
+        }
+    }
+
+    fun derivative(): (Double) -> Double {
+        return when (this) {
+            SIGMOID -> { x: Double -> dSigmoid(x) }
+            RELU -> { x: Double -> dRelu(x) }
+        }
+    }
+
 }
