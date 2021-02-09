@@ -1,5 +1,4 @@
-import model.LayerParameters
-import model.NeuralNetwork
+import model.*
 import utils.readData
 import java.io.File
 import kotlin.random.Random
@@ -20,12 +19,12 @@ fun main() {
         imagesFile = File("t10k-images.idx3-ubyte")
     )
 
-    if (trainingData.pixelsPerImage != testData.pixelsPerImage) {
+    if (trainingData.dimensions != testData.dimensions) {
         throw Error("Training and test images should have same dimensions")
     }
 
     val network = NeuralNetwork.build(
-        inputLength = trainingData.pixelsPerImage,
+        inputDimensions = trainingData.dimensions,
         hiddenLayers = hiddenLayers,
         outputLayer = LayerParameters(
             numberOfNodes = 10,
@@ -34,13 +33,42 @@ fun main() {
         random = random
     )
 
-    network.fullyConnect()
+    val horizontalEdgeScanner = createScanLayer(
+        inputLayer = network.inputLayer,
+        pattern = horizontalWeightPattern
+    )
+    network.hiddenLayers.add(horizontalEdgeScanner)
+
+    val verticalEdgeScanner = createScanLayer(
+        inputLayer = network.inputLayer,
+        pattern = verticalWeightPattern
+    )
+    network.hiddenLayers.add(verticalEdgeScanner)
+
+    val slashEdgeScanner = createScanLayer(
+        inputLayer = network.inputLayer,
+        pattern = slashWeightPattern
+    )
+    network.hiddenLayers.add(slashEdgeScanner)
+
+    val backslashEdgeScanner = createScanLayer(
+        inputLayer = network.inputLayer,
+        pattern = backslashWeightPattern
+    )
+    network.hiddenLayers.add(backslashEdgeScanner)
+
+    horizontalEdgeScanner.fullyConnectTo(network.outputLayer, random)
+    verticalEdgeScanner.fullyConnectTo(network.outputLayer, random)
+    slashEdgeScanner.fullyConnectTo(network.outputLayer, random)
+    backslashEdgeScanner.fullyConnectTo(network.outputLayer, random)
 
     val test: () -> Double = {
+        // the first 5000 are supposed to be easier
+        val examples = testData.examples.let { if(easierTestData) it.subList(0, 5000) else it }
+
         var correct = 0
         var incorrect = 0
-        // use the first 5000 which are supposed to be easier
-        for (example in testData.examples.subList(0, 5000)) {
+        for (example in examples) {
             val label = network.eval(example.data)
             if (label == example.label) correct++ else incorrect++
         }
@@ -49,10 +77,10 @@ fun main() {
     }
 
     network.train(
-        trainingData = trainingData.examples.shuffled(random).slice(0 until trainingImages),
+        trainingData = trainingData.examples.shuffled(random),
         iterations = iterations,
-        batchSize = batchSize,
-        stepSize = stepSize,
+        batchSizeByIteration = batchSizeByIteration,
+        stepSizeByIteration = stepSizeByIteration,
         evaluateTestData = test,
         evaluateTestDataAfterBatches = evaluateTestDataAfterBatches
     )

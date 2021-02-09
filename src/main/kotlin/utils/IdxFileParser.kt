@@ -1,25 +1,26 @@
 package utils
 
+import model.Dimensions
 import model.Example
 import java.io.File
 import java.nio.ByteBuffer
 
 data class Examples(
     val examples: List<Example>,
-    val pixelsPerImage: Int
+    val dimensions: Dimensions
 )
 
 fun readData(imagesFile: File, labelsFile: File): Examples {
-    val (pixelsPerImage, images) = readImages(imagesFile)
+    val imageSet = readImages(imagesFile)
     val labels = readLabels(labelsFile)
 
-    if (images.size != labels.size) {
-        throw Error("${labels.size} labels does not match ${images.size} images")
+    if (imageSet.images.size != labels.size) {
+        throw Error("${labels.size} labels does not match ${imageSet.images.size} images")
     }
 
     return Examples(
-        examples = images.zip(labels).map { (image, label) -> Example(data = image, label = label) },
-        pixelsPerImage = pixelsPerImage
+        examples = imageSet.images.zip(labels).map { (image, label) -> Example(data = image, label = label) },
+        dimensions = imageSet.dimensions
     )
 }
 
@@ -39,7 +40,12 @@ fun readLabels(file: File): List<Int> {
     return labels
 }
 
-fun readImages(file: File): Pair<Int, List<List<Double>>> {
+data class ImageSet (
+    val images: List<List<Double>>,
+    val dimensions: Dimensions
+)
+
+fun readImages(file: File): ImageSet {
     val bytes = file.readBytes()
 
     val magicNumber = read32BitInt(bytes, 0)
@@ -60,7 +66,7 @@ fun readImages(file: File): Pair<Int, List<List<Double>>> {
         bytes.slice(offset until offset + pixelsPerImage).map { pixel -> (pixel.toInt() and 0xFF) / 255.0 }
     }
 
-    return Pair(pixelsPerImage, images)
+    return ImageSet(images, Dimensions(x = xResolution, y = yResolution))
 }
 
 private fun read32BitInt(byteArray: ByteArray, from: Int) = ByteBuffer

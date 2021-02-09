@@ -50,7 +50,7 @@ interface ReceiverNode : Node {
     fun train()
 
     fun nudgeParameters(stepSize: Double) {
-        bias -= stepSize * derivativeOfCostByBiasOnExampleK.average()
+        bias = (bias - stepSize * derivativeOfCostByBiasOnExampleK.average()).coerceIn(-0.8, 0.8)
         if (bias.isNaN()) {
             throw Error("bias NaN")
         }
@@ -74,7 +74,7 @@ class InputNode(
 /**
  * HiddenNode is a Node on one of the hidden intermediary layers.
  */
-class HiddenNode(
+open class HiddenNode(
     override var activation: Double,
     override val outputs: MutableList<Edge>,
     override val inputs: MutableList<Edge>,
@@ -112,6 +112,35 @@ class HiddenNode(
                 )
             }
         }
+    }
+}
+
+/**
+ * StaticNode is a preconfigured HiddenNode that does not learn on its own.
+ */
+class StaticNode(
+    override var activation: Double,
+    override val outputs: MutableList<Edge>,
+    override val inputs: MutableList<Edge>,
+    override var bias: Double = 0.0,
+    override val activationFunction: (x: Double) -> Double
+) : HiddenNode(
+    activation = activation,
+    outputs = outputs,
+    inputs = inputs,
+    bias = bias,
+    activationFunction = activationFunction,
+    dActivationFunction = { _: Double -> 0.0 },
+    derivativeOfCostByBiasOnExampleK = mutableListOf(),
+    derivativesOfCostByActivation = mutableListOf()
+) {
+
+    override fun train() {
+        // do nothing
+    }
+
+    override fun nudgeParameters(stepSize: Double) {
+        // do nothing
     }
 }
 

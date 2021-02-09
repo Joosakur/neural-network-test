@@ -44,17 +44,33 @@ interface ReceivingLayer<T : ReceiverNode> : Layer<T> {
     }
 }
 
+data class Dimensions (
+    val x: Int,
+    val y: Int
+){
+    val pixels: Int
+        get() = x * y
+}
+
 /**
  * InputLayer is the very first layer of the network, consisting of InputNodes, and where the input data is set.
  */
 class InputLayer(
-    override val nodes: List<InputNode>
+    override val nodes: List<InputNode>,
+    val dimensions: Dimensions
 ) : TransmittingLayer<InputNode> {
 
     override fun clear() {
         for (n in nodes.indices) {
             nodes[n].outputs.forEach { edge -> edge.derivativeOfCostByWeightOnExampleK.clear() }
         }
+    }
+
+    fun getNodeAt(x: Int, y: Int): InputNode? {
+        if(x < 0 || y < 0 || x >= dimensions.x || y >= dimensions.y){
+            return null
+        }
+        return nodes[y * dimensions.x + x]
     }
 
 }
@@ -65,6 +81,23 @@ class InputLayer(
 class HiddenLayer(
     override val nodes: List<HiddenNode>
 ) : TransmittingLayer<HiddenNode>, ReceivingLayer<HiddenNode> {
+    companion object {
+        fun build(
+            params: LayerParameters,
+            random: Random
+        ) = HiddenLayer(
+            nodes = (0 until params.numberOfNodes).map {
+                HiddenNode(
+                    activation = 0.0,
+                    outputs = mutableListOf(),
+                    inputs = mutableListOf(),
+                    bias = random.nextDouble() - 0.5,
+                    activationFunction = params.activationFunction.get(),
+                    dActivationFunction = params.activationFunction.derivative()
+                )
+            }
+        )
+    }
 
     override fun clear() {
         nodes.forEach { node ->

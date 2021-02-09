@@ -22,10 +22,27 @@ Run main.kt
 
 ## Example results
 
-Network without hidden layers works surprisingly well and learns very quickly.
+### Attempt 1
+Network without any hidden layers works surprisingly well.
 
 ![Result 1](results/example-result-1.PNG)
 
-Network with one hidden layer of 32 nodes takes a much longer time to train, but might ultimately give better results.
+### Attempt 2
+Network with one hidden layer of 32 nodes takes a much longer time to train and gives poor results
 
 ![Result 2](./results/example-result-2.PNG)
+
+### Attempt 3
+After some trial and error with network topology, step size and batch size I was able to get close to 90% accuracy, but
+that proved to be a glass ceiling.
+
+![Result 2](./results/example-result-3.PNG)
+
+### Attempt 4
+Finally, I added some adhoc convolution layers for edge detection and reached the final result of 96,6 %.
+
+![Result 2](./results/example-result-4.PNG)
+
+These ascii debug graphics demonstrate how it discovers edges in four directions.
+
+![Result 2](./results/convolution.PNG)
