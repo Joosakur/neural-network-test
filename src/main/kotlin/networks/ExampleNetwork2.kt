@@ -12,6 +12,10 @@ class ExampleNetwork2 : NetworkBuilder {
                 HiddenLayer(
                     dimensions = Dimension1D(16),
                     activationFunction = ActivationFunction.RELU
+                ),
+                HiddenLayer(
+                    dimensions = Dimension1D(16),
+                    activationFunction = ActivationFunction.RELU
                 )
             ),
             outputLayer = OutputLayer(

@@ -8,7 +8,6 @@ import kotlin.math.pow
 * Main entrypoint
 * */
 fun main() {
-    // clear output directory
     File("output/").takeIf { it.exists() && it.isDirectory }?.deleteRecursively()
 
     val trainingSamples = readSamplesFromIdxFiles(
@@ -33,7 +32,7 @@ fun main() {
     network.train(
         trainingSamples = trainingSamples.samples,
         tester = Tester(testSamples),
-        iterations = 10,
+        iterations = 30,
         iterationMaxLength = 10000,
         batchSizeByIteration = { iteration: Int -> 50 + 10 * iteration },
         stepSizeByIteration = { iteration: Int -> 1.0 * 0.97.pow(iteration) },
@@ -41,9 +40,9 @@ fun main() {
     )
 
     val finalSuccessRate = Tester(
-        testData = testSamples,
-        outputDataOnSuccess = false,
-        outputDataOnError = true
+        testSamples = testSamples,
+        outputActivationDataOnSuccess = false,
+        outputActivationDataOnError = false
     ).runTestsAndGetSuccessRate(network)
 
     println("Finished! Final success rate was ${100.0 * finalSuccessRate} %")

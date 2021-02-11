@@ -14,9 +14,6 @@ with a 28x28 px resolution.
 - Kotlin
 - Download the four data files from http://yann.lecun.com/exdb/mnist/ and extract to project root.
 
-## Edit parameters
-You may change e.g. network topology and step size by editing parameters.kt
-
 ## Running
 Run main.kt
 
@@ -28,21 +25,20 @@ Network without any hidden layers works surprisingly well.
 ![Result 1](results/example-result-1.PNG)
 
 ### Attempt 2
-Network with one hidden layer of 32 nodes takes a much longer time to train and gives poor results
+Network with two hidden layers of 16 nodes with ReLU activation seems to give poor results. 
 
 ![Result 2](./results/example-result-2.PNG)
 
 ### Attempt 3
-After some trial and error with network topology, step size and batch size I was able to get close to 90% accuracy, but
-that proved to be a glass ceiling.
+Network with two hidden layers of 16 nodes with Sigmoid activation, and all layers connected to every other layer seems to give rather good results.
 
-![Result 2](./results/example-result-3.PNG)
+![Result 3](./results/example-result-3.PNG)
 
 ### Attempt 4
-Finally, I added some adhoc convolution layers for edge detection and reached the final result of 96,6 %.
+Network with convolution layers for edge detection gives clearly the best results.
 
-![Result 2](./results/example-result-4.PNG)
+![Result 4](./results/example-result-4.PNG)
 
 These ascii debug graphics demonstrate how it discovers edges in four directions.
 
-![Result 2](./results/convolution.PNG)
+![Activation of convolution layers](./results/convolution.PNG)

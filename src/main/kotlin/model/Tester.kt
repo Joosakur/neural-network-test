@@ -4,23 +4,23 @@ import input.Samples
 import output.outputNetworkActivationData
 
 class Tester (
-    val testData: Samples,
-    val outputDataOnSuccess: Boolean = false,
-    val outputDataOnError: Boolean = false
+    val testSamples: Samples,
+    val outputActivationDataOnSuccess: Boolean = false,
+    val outputActivationDataOnError: Boolean = false
 ){
     fun runTestsAndGetSuccessRate(network: NeuralNetwork): Double {
-        if(outputDataOnSuccess || outputDataOnError){
+        if(outputActivationDataOnSuccess || outputActivationDataOnError){
             println("Writing data to files in the output directory")
         }
 
         var correct = 0
         var incorrect = 0
-        testData.samples.forEachIndexed { index, sample ->
+        testSamples.samples.forEachIndexed { index, sample ->
             val label = network.eval(sample.data)
             if (label == sample.label) {
                 correct++
 
-                if(outputDataOnSuccess) {
+                if(outputActivationDataOnSuccess) {
                     outputNetworkActivationData(
                         network,
                         "output/test/success/$index"
@@ -29,7 +29,7 @@ class Tester (
             } else {
                 incorrect++
 
-                if(outputDataOnError) {
+                if(outputActivationDataOnError) {
                     outputNetworkActivationData(
                         network,
                         "output/test/error/$index"

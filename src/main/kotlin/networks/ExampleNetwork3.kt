@@ -11,10 +11,10 @@ class ExampleNetwork3 : NetworkBuilder {
             hiddenLayers = listOf(
                 HiddenLayer(
                     dimensions = Dimension1D(16),
-                    activationFunction = ActivationFunction.RELU
+                    activationFunction = ActivationFunction.SIGMOID
                 ),
                 HiddenLayer(
-                    dimensions = Dimension1D(16),
+                    dimensions = Dimension1D(10),
                     activationFunction = ActivationFunction.SIGMOID
                 )
             ),
