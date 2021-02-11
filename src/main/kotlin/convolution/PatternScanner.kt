@@ -1,6 +1,39 @@
-package model
+package convolution
 
+import model.*
 import kotlin.math.absoluteValue
+import kotlin.math.ceil
+import kotlin.math.roundToInt
+
+fun createPatternScanLayer(
+    inputLayer: InputLayer,
+    pattern: Array<DoubleArray>,
+    xPadding: Int = 3,
+    yPadding: Int = 3,
+    stepX: Int = 2,
+    stepY: Int = 2
+): HiddenLayer {
+    val nodes = mutableListOf<StaticNode>()
+    var x = xPadding
+    var y = yPadding
+
+    while (y < inputLayer.dimensions.y - yPadding){
+        while (x < inputLayer.dimensions.x - xPadding){
+            nodes.add(createMaskNode(inputLayer, pattern, x, y))
+            x += stepX
+        }
+        y += stepY
+        x = xPadding
+    }
+
+    return HiddenLayer(
+        nodes = nodes,
+        dimensions = Dimensions(
+            x = ceil(1.0 * (inputLayer.dimensions.x - 2 * xPadding) / stepX).roundToInt(),
+            y = ceil(1.0 * (inputLayer.dimensions.y - 2 * yPadding) / stepY).roundToInt()
+        )
+    )
+}
 
 val horizontalWeightPattern = arrayOf(
     doubleArrayOf(-0.4, -0.5, -0.7, -1.0, -0.7, -0.5, -0.4),
@@ -42,19 +75,18 @@ val backslashWeightPattern = arrayOf(
     doubleArrayOf(-2.0, -1.0, -0.5, 0.0, 0.0, 0.0, 0.7)
 )
 
-fun createMaskNode(
+private fun createMaskNode(
     inputLayer: InputLayer,
     pattern: Array<DoubleArray>,
     atX: Int,
     atY: Int
 ): StaticNode {
     val node = StaticNode(
-        activation = 0.0,
-        outputs = mutableListOf(),
-        inputs = mutableListOf(),
-        bias = -1.0,
-        activationFunction = ActivationFunction.RELU.get()
+        activationFunction = ActivationFunction.RELU
     )
+
+    node.bias = -1.0
+
     for (i in -3..3){
         for(j in -3..3){
             val weight = pattern[j+3][i+3].takeIf { it.absoluteValue > 0.001 } ?: continue
@@ -68,28 +100,6 @@ fun createMaskNode(
             node.inputs.add(edge)
         }
     }
+
     return node
-}
-
-fun createScanLayer(
-    inputLayer: InputLayer,
-    pattern: Array<DoubleArray>,
-    xPadding: Int = 3,
-    yPadding: Int = 3,
-    stepX: Int = 2,
-    stepY: Int = 2
-): HiddenLayer {
-    val nodes = mutableListOf<StaticNode>()
-    var x = xPadding
-    var y = yPadding
-    while (y < inputLayer.dimensions.y - yPadding){
-        while (x < inputLayer.dimensions.x - xPadding){
-            nodes.add(createMaskNode(inputLayer, pattern, x, y))
-            x += stepX
-        }
-        y += stepY
-        x = xPadding
-    }
-
-    return HiddenLayer(nodes)
 }

@@ -1,16 +1,10 @@
-package utils
+package input
 
 import model.Dimensions
-import model.Example
 import java.io.File
 import java.nio.ByteBuffer
 
-data class Examples(
-    val examples: List<Example>,
-    val dimensions: Dimensions
-)
-
-fun readData(imagesFile: File, labelsFile: File): Examples {
+fun readSamplesFromIdxFiles(imagesFile: File, labelsFile: File): Samples {
     val imageSet = readImages(imagesFile)
     val labels = readLabels(labelsFile)
 
@@ -18,13 +12,13 @@ fun readData(imagesFile: File, labelsFile: File): Examples {
         throw Error("${labels.size} labels does not match ${imageSet.images.size} images")
     }
 
-    return Examples(
-        examples = imageSet.images.zip(labels).map { (image, label) -> Example(data = image, label = label) },
+    return Samples(
+        samples = imageSet.images.zip(labels).map { (image, label) -> Sample(data = image, label = label) },
         dimensions = imageSet.dimensions
     )
 }
 
-fun readLabels(file: File): List<Int> {
+private fun readLabels(file: File): List<Int> {
     val bytes = file.readBytes()
 
     val magicNumber = read32BitInt(bytes, 0)
@@ -40,12 +34,12 @@ fun readLabels(file: File): List<Int> {
     return labels
 }
 
-data class ImageSet (
+private data class ImageSet (
     val images: List<List<Double>>,
     val dimensions: Dimensions
 )
 
-fun readImages(file: File): ImageSet {
+private fun readImages(file: File): ImageSet {
     val bytes = file.readBytes()
 
     val magicNumber = read32BitInt(bytes, 0)
@@ -69,6 +63,6 @@ fun readImages(file: File): ImageSet {
     return ImageSet(images, Dimensions(x = xResolution, y = yResolution))
 }
 
-private fun read32BitInt(byteArray: ByteArray, from: Int) = ByteBuffer
-    .wrap(byteArray.sliceArray(from until from + 4))
+private fun read32BitInt(byteArray: ByteArray, offset: Int) = ByteBuffer
+    .wrap(byteArray.sliceArray(offset until offset + 4))
     .int
