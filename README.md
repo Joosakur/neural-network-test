@@ -5,6 +5,14 @@ The network is modelled mostly in an object-oriented fashion and without matrix 
 The point is to try to understand its inner workings in a more concrete fashion.
 This is NOT an attempt to create a well performing and effective solution.
 
+## Online demo
+
+Please also have a look at the React application which uses the network trained by this project.
+
+Demo hosted at: https://neural-network.joosa.net/
+
+Source code: https://github.com/Joosakur/neural-network-demo
+
 ## Training and test data
 
 By default, the data used for training and testing is a set of grayscale images of handwritten digits 
@@ -39,6 +47,11 @@ Network with convolution layers for edge detection gives clearly the best result
 
 ![Result 4](./results/example-result-4.PNG)
 
-These ascii debug graphics demonstrate how it discovers edges in four directions.
+These debug graphics demonstrate how it discovers edges in four directions.
 
 ![Activation of convolution layers](./results/convolution.PNG)
+
+## About Me
+Developed by Joosa Kurvinen
+
+https://www.linkedin.com/in/joosa-kurvinen/
