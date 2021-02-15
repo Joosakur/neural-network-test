@@ -118,17 +118,17 @@ class NeuralNetwork(
 
     private val costs: MutableList<Double> = mutableListOf()
 
-    private val allLayers: List<Layer<*>>
+    val allLayers: List<Layer<*>>
         get() = listOf(
             inputLayer,
             *hiddenLayers.toTypedArray(),
             outputLayer
         )
 
-    private val transmittingLayers: List<TransmittingLayer<*>>
+    val transmittingLayers: List<TransmittingLayer<*>>
         get() = listOf(inputLayer, *hiddenLayers.toTypedArray())
 
-    private val receivingLayers: List<ReceivingLayer<*>>
+    val receivingLayers: List<ReceivingLayer<*>>
         get() = listOf(*hiddenLayers.toTypedArray(), outputLayer)
 
 }

@@ -1,10 +1,10 @@
 package model
 
-import input.Samples
+import input.Sample
 import output.outputNetworkActivationData
 
 class Tester (
-    val testSamples: Samples,
+    val testSamples: List<Sample>,
     val outputActivationDataOnSuccess: Boolean = false,
     val outputActivationDataOnError: Boolean = false
 ){
@@ -15,7 +15,7 @@ class Tester (
 
         var correct = 0
         var incorrect = 0
-        testSamples.samples.forEachIndexed { index, sample ->
+        testSamples.forEachIndexed { index, sample ->
             val label = network.eval(sample.data)
             if (label == sample.label) {
                 correct++

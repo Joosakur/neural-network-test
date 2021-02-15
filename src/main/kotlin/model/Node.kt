@@ -2,11 +2,13 @@ package model
 
 import random
 import utils.*
+import java.util.*
 
 /**
  * Node presents a single node (or a neuron) in the network.
  */
 interface Node {
+    val id: UUID
     var activation: Double
 
     fun clear()
@@ -85,6 +87,7 @@ interface ReceiverNode : Node {
  * InputNode is a Node on the input layer.
  */
 class InputNode : TransmitterNode{
+    override val id: UUID = UUID.randomUUID()
     override var activation: Double = 0.0
     override val outputs: MutableList<Edge> = mutableListOf()
 }
@@ -95,6 +98,7 @@ class InputNode : TransmitterNode{
 open class HiddenNode(
     override val activationFunction: ActivationFunction,
 ) : TransmitterNode, ReceiverNode {
+    override val id: UUID = UUID.randomUUID()
     override var activation: Double = 0.0
     override var bias: Double = 0.0
     override val inputs: MutableList<Edge> = mutableListOf()
@@ -150,6 +154,8 @@ class StaticNode(
 ) : HiddenNode(
     activationFunction = activationFunction
 ) {
+    override val id: UUID = UUID.randomUUID()
+
     override fun train() {
         // do nothing
     }
@@ -165,6 +171,7 @@ class StaticNode(
 open class OutputNode(
     override val activationFunction: ActivationFunction,
 ) : ReceiverNode {
+    override val id: UUID = UUID.randomUUID()
     override var activation: Double = 0.0
     override var bias: Double = 0.0
     override val inputs: MutableList<Edge> = mutableListOf()
