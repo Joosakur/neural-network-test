@@ -40,7 +40,7 @@ class NeuralNetwork(
             throw IllegalArgumentException("Input array must have size ${inputLayer.size}")
         }
 
-        input.zip(inputLayer.nodes).forEach { (value, node) -> node.activation = value }
+        input.zip(inputLayer.neurons).forEach { (value, neuron) -> neuron.activation = value }
     }
 
     fun propagateForward() {
@@ -48,7 +48,7 @@ class NeuralNetwork(
     }
 
     fun getBestGuess(): Int {
-        val activations = outputLayer.nodes.map { it.activation }
+        val activations = outputLayer.neurons.map { it.activation }
         return activations.maxOrNull()
             ?.let { activations.indexOf(it) }
             ?: throw IllegalStateException("Output layers is empty")
@@ -86,23 +86,23 @@ class NeuralNetwork(
                 batch.forEach { sample ->
                     sampleNumber++
 
-                    inputLayer.nodes.forEachIndexed { i, node ->
-                        node.activation = sample.data[i]
+                    inputLayer.neurons.forEachIndexed { i, neuron ->
+                        neuron.activation = sample.data[i]
                     }
 
                     hiddenLayers.forEach { layer ->
-                        layer.nodes.forEach { it.derivativesOfCostByActivation.clear() }
+                        layer.neurons.forEach { it.derivativesOfCostByActivation.clear() }
                     }
 
-                    outputLayer.nodes.forEachIndexed { i, node ->
-                        node.desiredActivation = if (sample.label == i) 1.0 else 0.0
+                    outputLayer.neurons.forEachIndexed { i, neuron ->
+                        neuron.desiredActivation = if (sample.label == i) 1.0 else 0.0
                     }
 
                     propagateForward()
 
                     receivingLayers.asReversed().forEach { it.train() }
 
-                    costs.add(outputLayer.nodes.sumByDouble { it.cost() })
+                    costs.add(outputLayer.neurons.sumByDouble { it.cost() })
                 }
 
                 if ((batchNumber + 1) % evaluateTestDataAfterBatches == 0) {

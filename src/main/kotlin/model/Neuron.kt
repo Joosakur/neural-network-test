@@ -5,9 +5,9 @@ import utils.*
 import java.util.*
 
 /**
- * Node presents a single node (or a neuron) in the network.
+ * Neuron presents a single neuron (or a node) in the network.
  */
-interface Node {
+interface Neuron {
     val id: UUID
     var activation: Double
 
@@ -17,21 +17,21 @@ interface Node {
 }
 
 /**
- * TransmitterNode is a Node which has output connections to other nodes, i.e. it can be any node except one on the
+ * TransmitterNeuron is a Neuron which has output connections to other neurons, i.e. it can be any neuron except one on the
  * very last layer.
  */
-interface TransmitterNode : Node {
-    val outputs: MutableList<Edge>
+interface TransmitterNeuron : Neuron {
+    val outputs: MutableList<Connection>
 
-    fun connectTo(outputNode: ReceiverNode) {
-        val edge = Edge(
-            inputNode = this,
-            outputNode = outputNode,
+    fun connectTo(outputNeuron: ReceiverNeuron) {
+        val connection = Connection(
+            inputNeuron = this,
+            outputNeuron = outputNeuron,
             weight = random.nextDouble() - 0.5
         )
 
-        this.outputs.add(edge)
-        outputNode.inputs.add(edge)
+        this.outputs.add(connection)
+        outputNeuron.inputs.add(connection)
     }
 
     override fun clear(){
@@ -44,19 +44,19 @@ interface TransmitterNode : Node {
 }
 
 /**
- * ReceiverNode is a Node which has input connections from other nodes, i.e. it can be any node except one on the
- * very last layer.
+ * ReceiverNeuron is a Neuron which has input connections from other neurons, i.e. it can be any neuron except one on the
+ * very first layer.
  */
-interface ReceiverNode : Node {
-    val inputs: MutableList<Edge>
+interface ReceiverNeuron : Neuron {
+    val inputs: MutableList<Connection>
     var bias: Double
     val derivativesOfCostByBiasPerSample: MutableList<Double>
     val activationFunction: ActivationFunction
 
-    fun z(): Double = inputs.sumByDouble { it.inputStrength } + bias
+    fun propagationFunction(): Double = inputs.sumByDouble { it.inputStrength } + bias
 
     fun eval() {
-        activation = activationFunction.eval(z())
+        activation = activationFunction.eval(propagationFunction())
     }
 
     fun train()
@@ -84,30 +84,30 @@ interface ReceiverNode : Node {
 }
 
 /**
- * InputNode is a Node on the input layer.
+ * InputNeuron is a Neuron on the input layer.
  */
-class InputNode : TransmitterNode{
+class InputNeuron : TransmitterNeuron{
     override val id: UUID = UUID.randomUUID()
     override var activation: Double = 0.0
-    override val outputs: MutableList<Edge> = mutableListOf()
+    override val outputs: MutableList<Connection> = mutableListOf()
 }
 
 /**
- * HiddenNode is a Node on one of the hidden intermediary layers.
+ * HiddenNeuron is a Neuron on one of the hidden intermediary layers.
  */
-open class HiddenNode(
+open class HiddenNeuron(
     override val activationFunction: ActivationFunction,
-) : TransmitterNode, ReceiverNode {
+) : TransmitterNeuron, ReceiverNeuron {
     override val id: UUID = UUID.randomUUID()
     override var activation: Double = 0.0
     override var bias: Double = 0.0
-    override val inputs: MutableList<Edge> = mutableListOf()
-    override val outputs: MutableList<Edge> = mutableListOf()
+    override val inputs: MutableList<Connection> = mutableListOf()
+    override val outputs: MutableList<Connection> = mutableListOf()
     override val derivativesOfCostByBiasPerSample: MutableList<Double> = mutableListOf()
     val derivativesOfCostByActivation: MutableList<Double> = mutableListOf()
 
     override fun train() {
-        val a = activationFunction.evalDerivative(z())
+        val a = activationFunction.evalDerivative(propagationFunction())
 
         derivativesOfCostByBiasPerSample.add(
             derivativesOfCostByActivation.averageBy { dcda ->
@@ -115,18 +115,18 @@ open class HiddenNode(
             }
         )
 
-        inputs.forEach { edge ->
-            val b = edge.inputActivation * a
-            val c = edge.weight * a
+        inputs.forEach { connection ->
+            val b = connection.inputActivation * a
+            val c = connection.weight * a
 
-            edge.derivativesOfCostByWeightPerSample.add(
+            connection.derivativesOfCostByWeightPerSample.add(
                 derivativesOfCostByActivation.averageBy { dCost ->
                     b * dCost
                 }
             )
 
-            if (edge.inputNode is HiddenNode) {
-                edge.inputNode.derivativesOfCostByActivation.add(
+            if (connection.inputNeuron is HiddenNeuron) {
+                connection.inputNeuron.derivativesOfCostByActivation.add(
                     derivativesOfCostByActivation.averageBy { dCost ->
                         c * dCost
                     }
@@ -136,22 +136,22 @@ open class HiddenNode(
     }
 
     override fun clear() {
-        super<TransmitterNode>.clear()
-        super<ReceiverNode>.clear()
+        super<TransmitterNeuron>.clear()
+        super<ReceiverNeuron>.clear()
     }
 
     override fun randomize() {
-        super<TransmitterNode>.randomize()
-        super<ReceiverNode>.randomize()
+        super<TransmitterNeuron>.randomize()
+        super<ReceiverNeuron>.randomize()
     }
 }
 
 /**
- * StaticNode is a preconfigured HiddenNode that does not learn on its own.
+ * StaticNeuron is a preconfigured HiddenNeuron that does not learn on its own.
  */
-class StaticNode(
+class StaticNeuron(
     activationFunction: ActivationFunction
-) : HiddenNode(
+) : HiddenNeuron(
     activationFunction = activationFunction
 ) {
     override val id: UUID = UUID.randomUUID()
@@ -166,15 +166,15 @@ class StaticNode(
 }
 
 /**
- * OutputNode is a Node on the output layer.
+ * OutputNeuron is a Neuron on the output layer.
  */
-open class OutputNode(
+open class OutputNeuron(
     override val activationFunction: ActivationFunction,
-) : ReceiverNode {
+) : ReceiverNeuron {
     override val id: UUID = UUID.randomUUID()
     override var activation: Double = 0.0
     override var bias: Double = 0.0
-    override val inputs: MutableList<Edge> = mutableListOf()
+    override val inputs: MutableList<Connection> = mutableListOf()
     override val derivativesOfCostByBiasPerSample: MutableList<Double> = mutableListOf()
     var desiredActivation: Double = 0.0
 
@@ -183,18 +183,18 @@ open class OutputNode(
     fun dCost() = 2 * (activation - desiredActivation)
 
     override fun train() {
-        val q = activationFunction.evalDerivative(z()) * dCost()
+        val q = activationFunction.evalDerivative(propagationFunction()) * dCost()
 
         derivativesOfCostByBiasPerSample.add(q)
 
-        inputs.forEach { edge ->
-            edge.derivativesOfCostByWeightPerSample.add(
-                edge.inputActivation * q
+        inputs.forEach { connection ->
+            connection.derivativesOfCostByWeightPerSample.add(
+                connection.inputActivation * q
             )
 
-            if (edge.inputNode is HiddenNode) {
-                edge.inputNode.derivativesOfCostByActivation.add(
-                    edge.weight * q
+            if (connection.inputNeuron is HiddenNeuron) {
+                connection.inputNeuron.derivativesOfCostByActivation.add(
+                    connection.weight * q
                 )
             }
         }

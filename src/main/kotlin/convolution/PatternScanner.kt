@@ -13,13 +13,13 @@ fun createPatternScanLayer(
     stepX: Int = 2,
     stepY: Int = 2
 ): HiddenLayer {
-    val nodes = mutableListOf<StaticNode>()
+    val neurons = mutableListOf<StaticNeuron>()
     var x = xPadding
     var y = yPadding
 
     while (y < inputLayer.dimensions.y - yPadding){
         while (x < inputLayer.dimensions.x - xPadding){
-            nodes.add(createMaskNode(inputLayer, pattern, x, y))
+            neurons.add(createMaskNeuron(inputLayer, pattern, x, y))
             x += stepX
         }
         y += stepY
@@ -27,7 +27,7 @@ fun createPatternScanLayer(
     }
 
     return HiddenLayer(
-        nodes = nodes,
+        neurons = neurons,
         dimensions = Dimensions(
             x = ceil(1.0 * (inputLayer.dimensions.x - 2 * xPadding) / stepX).roundToInt(),
             y = ceil(1.0 * (inputLayer.dimensions.y - 2 * yPadding) / stepY).roundToInt()
@@ -75,31 +75,31 @@ val backslashWeightPattern = arrayOf(
     doubleArrayOf(-2.0, -1.0, -0.5, 0.0, 0.0, 0.0, 0.7)
 )
 
-private fun createMaskNode(
+private fun createMaskNeuron(
     inputLayer: InputLayer,
     pattern: Array<DoubleArray>,
     atX: Int,
     atY: Int
-): StaticNode {
-    val node = StaticNode(
+): StaticNeuron {
+    val neuron = StaticNeuron(
         activationFunction = ActivationFunction.RELU
     )
 
-    node.bias = -1.0
+    neuron.bias = -1.0
 
     for (i in -3..3){
         for(j in -3..3){
             val weight = pattern[j+3][i+3].takeIf { it.absoluteValue > 0.001 } ?: continue
-            val inputNode = inputLayer.getNodeAt(x = atX + i, y = atY + j) ?: continue
-            val edge = Edge(
-                inputNode = inputNode,
-                outputNode = node,
+            val inputNeuron = inputLayer.getNeuronAt(x = atX + i, y = atY + j) ?: continue
+            val connection = Connection(
+                inputNeuron = inputNeuron,
+                outputNeuron = neuron,
                 weight = weight
             )
-            inputNode.outputs.add(edge)
-            node.inputs.add(edge)
+            inputNeuron.outputs.add(connection)
+            neuron.inputs.add(connection)
         }
     }
 
-    return node
+    return neuron
 }

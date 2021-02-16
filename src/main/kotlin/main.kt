@@ -6,19 +6,19 @@ import java.io.File
 import kotlin.math.pow
 
 /**
-* Main entrypoint
+* Main entrypoint. Trains and tests the network.
 * */
 fun main() {
     File("output/").takeIf { it.exists() && it.isDirectory }?.deleteRecursively()
 
     val trainingData = readSamplesFromIdxFiles(
-        labelsFile = File("train-labels.idx1-ubyte"),
-        imagesFile = File("train-images.idx3-ubyte")
+        labelsFile = File("train-labels.idx1-ubyte").takeIf { it.exists() } ?: File("train-labels-idx1-ubyte"),
+        imagesFile = File("train-images.idx3-ubyte").takeIf { it.exists() } ?: File("train-images-idx3-ubyte")
     )
 
     val testData = readSamplesFromIdxFiles(
-        labelsFile = File("t10k-labels.idx1-ubyte"),
-        imagesFile = File("t10k-images.idx3-ubyte")
+        labelsFile = File("t10k-labels.idx1-ubyte").takeIf { it.exists() } ?: File("t10k-labels-idx1-ubyte"),
+        imagesFile = File("t10k-images.idx3-ubyte").takeIf { it.exists() } ?: File("t10k-images-idx3-ubyte")
     )
 
     if (trainingData.dimensions != testData.dimensions) {

@@ -1,106 +1,106 @@
 package model
 
 /**
- * Layer is a layer of Nodes in the network.
+ * Layer is a set of Neurons in the network.
  */
-interface Layer<T : Node> {
-    val nodes: List<T>
+interface Layer<T : Neuron> {
+    val neurons: List<T>
 
     val size: Int
-        get() = nodes.size
+        get() = neurons.size
 
     fun randomize(){
-        nodes.forEach { it.randomize() }
+        neurons.forEach { it.randomize() }
     }
 
     fun clear() {
-        nodes.forEach { it.clear() }
+        neurons.forEach { it.clear() }
     }
 }
 
 /**
- * TransmittingLayer is a layer of TransmitterNodes in the network, i.e. any layer except the very last.
+ * TransmittingLayer is a Layer of TransmitterNeurons, i.e. any layer except the very last.
  */
-interface TransmittingLayer<T : TransmitterNode> : Layer<T> {
+interface TransmittingLayer<T : TransmitterNeuron> : Layer<T> {
     val dimensions: Dimensions
 
-    fun <R : ReceiverNode> fullyConnectTo(nextLayer: ReceivingLayer<R>) {
-        nodes.forEach { inputNode ->
-            nextLayer.nodes.forEach { outputNode ->
-                inputNode.connectTo(outputNode)
+    fun <R : ReceiverNeuron> fullyConnectTo(nextLayer: ReceivingLayer<R>) {
+        neurons.forEach { inputNeuron ->
+            nextLayer.neurons.forEach { outputNeuron ->
+                inputNeuron.connectTo(outputNeuron)
             }
         }
     }
 
-    fun getNodeAt(x: Int, y: Int): T? {
+    fun getNeuronAt(x: Int, y: Int): T? {
         if(x < 0 || y < 0 || x >= dimensions.x || y >= dimensions.y){
             return null
         }
 
-        return nodes[y * dimensions.x + x]
+        return neurons[y * dimensions.x + x]
     }
 
 }
 
 /**
- * ReceivingLayer is a layer of ReceiverNodes in the network, i.e. any layer except the very first.
+ * ReceivingLayer is a Layer of ReceiverNeurons, i.e. any layer except the very first.
  */
-interface ReceivingLayer<T : ReceiverNode> : Layer<T> {
+interface ReceivingLayer<T : ReceiverNeuron> : Layer<T> {
 
     fun eval() {
-        nodes.forEach(ReceiverNode::eval)
+        neurons.forEach(ReceiverNeuron::eval)
     }
 
     fun train() {
-        nodes.forEach { it.train() }
+        neurons.forEach { it.train() }
     }
 
     fun nudgeParameters(stepSize: Double) {
-        nodes.forEach { it.nudgeParameters(stepSize) }
+        neurons.forEach { it.nudgeParameters(stepSize) }
     }
 
 }
 
 /**
- * InputLayer is the very first layer of the network, consisting of InputNodes, and where the input data is set.
+ * InputLayer is the very first layer of the network, consisting of InputNeurons, and where the input data is set.
  */
 class InputLayer(
     override val dimensions: Dimensions,
-    override val nodes: List<InputNode>
-) : TransmittingLayer<InputNode> {
+    override val neurons: List<InputNeuron>
+) : TransmittingLayer<InputNeuron> {
 
     constructor(dimensions: Dimensions) : this(
         dimensions = dimensions,
-        nodes = (0 until dimensions.pixels).map { InputNode() }
+        neurons = (0 until dimensions.pixels).map { InputNeuron() }
     )
 
 }
 
 /**
- * HiddenLayer is one of the hidden intermediary layers of the network, consisting of HiddenNodes.
+ * HiddenLayer is one of the hidden intermediary layers of the network, consisting of HiddenNeurons.
  */
 class HiddenLayer(
     override val dimensions: Dimensions,
-    override val nodes: List<HiddenNode>
-) : TransmittingLayer<HiddenNode>, ReceivingLayer<HiddenNode> {
+    override val neurons: List<HiddenNeuron>
+) : TransmittingLayer<HiddenNeuron>, ReceivingLayer<HiddenNeuron> {
 
     constructor(dimensions: Dimensions, activationFunction: ActivationFunction) : this(
         dimensions = dimensions,
-        nodes = (0 until dimensions.pixels).map { HiddenNode(activationFunction) }
+        neurons = (0 until dimensions.pixels).map { HiddenNeuron(activationFunction) }
     )
 
 }
 
 /**
- * OutputLayer is the very last layer of the network, consisting of OutputNodes, and from where the classification
+ * OutputLayer is the very last layer of the network, consisting of OutputNeurons, and from where the classification
  * result is read.
  */
 class OutputLayer(
-    override val nodes: List<OutputNode>
-) : ReceivingLayer<OutputNode> {
+    override val neurons: List<OutputNeuron>
+) : ReceivingLayer<OutputNeuron> {
 
     constructor(length: Int, activationFunction: ActivationFunction) : this(
-        nodes = (0 until length).map { OutputNode(activationFunction) }
+        neurons = (0 until length).map { OutputNeuron(activationFunction) }
     )
 
 }

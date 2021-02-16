@@ -1,41 +1,41 @@
 package output
 
 import model.NeuralNetwork
-import model.Node
+import model.Neuron
 
-data class NodePosition(
+data class NeuronPosition(
     val layerIndex: Int,
-    val nodeIndex: Int
+    val neuronIndex: Int
 )
 
-private fun getNodePosition(network: NeuralNetwork, target: Node): NodePosition {
+private fun getNeuronPosition(network: NeuralNetwork, target: Neuron): NeuronPosition {
     network.allLayers.forEachIndexed { layerIndex, layer ->
-        layer.nodes.forEachIndexed { nodeIndex, node ->
-            if(target.id == node.id) {
-                return NodePosition(
+        layer.neurons.forEachIndexed { neuronIndex, neuron ->
+            if(target.id == neuron.id) {
+                return NeuronPosition(
                     layerIndex = layerIndex,
-                    nodeIndex = nodeIndex
+                    neuronIndex = neuronIndex
                 )
             }
         }
     }
 
-    throw Error("Node not found")
+    throw Error("Neuron not found")
 }
 
 fun exportToJson(network: NeuralNetwork): String {
     return """{
-    "inputLayerLength": ${network.inputLayer.nodes.size},
+    "inputLayerLength": ${network.inputLayer.neurons.size},
     "otherLayers": ${network.receivingLayers.map { layer -> """
         {
-            "nodes": ${layer.nodes.map { node -> """
+            "neurons": ${layer.neurons.map { neuron -> """
                 {
-                    "bias": ${node.bias},
-                    "activationFunction": "${node.activationFunction.name}",
-                    "inputs": ${node.inputs.map { input -> """
-                        {${getNodePosition(network, input.inputNode).let { """
+                    "bias": ${neuron.bias},
+                    "activationFunction": "${neuron.activationFunction.name}",
+                    "inputs": ${neuron.inputs.map { input -> """
+                        {${getNeuronPosition(network, input.inputNeuron).let { """
                             "fromLayer": ${it.layerIndex},
-                            "fromNode": ${it.nodeIndex},""" }}
+                            "fromNeuron": ${it.neuronIndex},""" }}
                             "weight": ${input.weight}
                         }""" }}
                     

@@ -28,14 +28,14 @@ fun outputNetworkActivationData(
     File("$path/output.txt").printWriter().use { printWriter ->
         val result = network.getBestGuess()
         val confidence = 100.0 *
-            network.outputLayer.nodes[result].activation /
-            network.outputLayer.nodes.sumByDouble { it.activation }
+            network.outputLayer.neurons[result].activation /
+            network.outputLayer.neurons.sumByDouble { it.activation }
 
         printWriter.println("Result: $result")
         printWriter.println("Confidence: $confidence %")
         printWriter.println()
-        network.outputLayer.nodes.forEachIndexed { index, outputNode ->
-            printWriter.println("$index: ${outputNode.activation}")
+        network.outputLayer.neurons.forEachIndexed { index, outputNeuron ->
+            printWriter.println("$index: ${outputNeuron.activation}")
         }
     }
 }
@@ -48,7 +48,7 @@ private fun saveLayerActivationAsImage(
     val width = layer.dimensions.x
     val height = layer.dimensions.y
 
-    val pixels = layer.nodes.map { it.activation }
+    val pixels = layer.neurons.map { it.activation }
         .let { activations ->
             val min = activations.minOfOrNull { it }
             if (min != null && min < 0) {
